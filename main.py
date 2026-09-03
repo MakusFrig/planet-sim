@@ -32,6 +32,8 @@ class Planet:
 
 		self.color = color
 
+		self.previous_positions = []
+
 	def update_position(self, time_step, bounds):
 
 		#start by updating the velocities
@@ -113,22 +115,25 @@ bounds = [-half_x, half_x, -half_y, half_y]
 
 # 3. Create a Clock to manage frame rates (FPS)
 clock = pygame.time.Clock()
+last_time = pygame.time.get_ticks() #this is for measuring real display time
 
 # Define Colors (RGB format)
 BACKGROUND_COLOR = (30, 30, 40)    # Dark gray
 PLAYER_COLOR = (0, 255, 128)        # Mint green
-p1_color = (255, 0, 0) #red
-p2_color = (0, 255, 0) #green
-p3_color = (0, 0, 255) #blue
+p1_color = (255, 165, 0) #orange for sun
+p2_color = (255, 180, 180) #star with a tint
+p3_color = (180, 255, 180) #blue
+p4_color = (180, 180 , 255)
 
 
 #from here lets create a systems
 
 planet1 = Planet("earth", 0, 0, 0, 0, 0, 0, 6*10**24, 10, p1_color)
-planet2 = Planet("moon", 200*10**6, 0, 0, 1200, 0, 0, 5*10**22, 2, p2_color)
-#planet3 = Planet("planet3", 25, -50, 0, 0, 0, 0, 400, 5, p3_color)
+planet2 = Planet("moon", 200*10**6, 0, 0, 1200, 0, 0, 5*10**22, 3, p2_color)
+planet3 = Planet("new_moon", 0, 300*10**6, -1100, 0, 0, 0, 2*10**22, 3, p3_color)
+planet4 = Planet("new_moon", 0, -250*10**6, 1150, 0, 0, 0, 2*10**22, 3, p4_color)
 
-planets = [planet1, planet2]
+planets = [planet1, planet2, planet3, planet4]
 
 planets_len = range(len(planets))
 
@@ -143,6 +148,9 @@ while running:
 	#first we want to update the accelerations of the planets based on one another
 
 	for solve_planet in planets_len:
+
+		planets[solve_planet].a_x = 0
+		planets[solve_planet].a_y = 0
 
 		for other_planet in planets_len:
 
@@ -166,8 +174,10 @@ while running:
 			mass1 = p1.mass
 			mass2 = p2.mass
 
-			planets[solve_planet].a_x, planets[solve_planet].a_y = solve_component_acc(x1, x2, y1, y2, mass1, mass2)
-
+			
+			new_a_x, new_a_y = solve_component_acc(x1, x2, y1, y2, mass1, mass2)
+			planets[solve_planet].a_x += new_a_x
+			planets[solve_planet].a_y += new_a_y
 			
 
 	#from here all the accelerations are updated
@@ -176,9 +186,9 @@ while running:
 
 		
 
-		if each_planet.name == "earth":
-			#just because earth is our reference point
-			continue
+		"""if each_planet.name == "earth":
+									#just because earth is our reference point
+									continue"""
 
 		for i in range(20):
 
@@ -191,7 +201,7 @@ while running:
 
 	# --- Drawing/Rendering ---
 	# Fill the background to wipe away drawings from the last frame
-	#screen.fill(BACKGROUND_COLOR)
+	screen.fill((0,0,0))
 
 	#from here we want to draw the planets
 
@@ -205,6 +215,18 @@ while running:
 
 		pygame.draw.circle(screen, each_planet.color, (new_x, new_y), each_planet.radius, width=0)
 
+		#now from here print the past positions
+
+		for i in each_planet.previous_positions:
+
+			new_x = half_x + min(max(int(i[0]*10**-6), bounds[0]), bounds[1])
+
+			new_y = half_y - min(max(int(i[1]*10**-6), bounds[2]), bounds[3])
+
+			pygame.draw.circle(screen, each_planet.color, (new_x, new_y), 1, width=0)
+
+
+
 
 
 	# Refresh the display with everything drawn this frame
@@ -212,6 +234,18 @@ while running:
 
 	# Cap the frame rate at 60 FPS
 	clock.tick(60)
+
+	current_time = pygame.time.get_ticks()
+
+	if current_time - last_time > 1000: #1000ms have passed in real time
+
+		for each_planet in planets:
+
+			each_planet.previous_positions.append([each_planet.x, each_planet.y])
+
+			if len(each_planet.previous_positions) > 50:
+
+				each_planet.previous_positions.pop(0)
 
 # 6. Cleanly close everything down
 pygame.quit()
