@@ -4,7 +4,7 @@
 import pygame
 import sys
 
-gravity_cof = 0.1
+gravity_cof = 0.15
 
 class Planet:
 
@@ -30,7 +30,7 @@ class Planet:
 
 		self.color = color
 
-	def update_position(self, time_step):
+	def update_position(self, time_step, bounds):
 
 		#start by updating the velocities
 
@@ -43,6 +43,12 @@ class Planet:
 		self.x += self.v_x * time_step
 
 		self.y += self.v_y * time_step
+
+		self.x = min(max(self.x, bounds[0]), bounds[1])
+
+		self.y = min(max(self.y, bounds[2]), bounds[3])
+
+
 
 
 def solve_component_acc(d1, d2, mass1, mass2):
@@ -73,6 +79,9 @@ pygame.display.set_caption("Planet Simulation")
 #define some variables for translating the coordinates
 half_x = SCREEN_WIDTH/2
 half_y = SCREEN_HEIGHT/2
+
+#create the bounds for the screen so that planets dont go off screen
+bounds = [-half_x, half_x, -half_y, half_y]
 
 # 3. Create a Clock to manage frame rates (FPS)
 clock = pygame.time.Clock()
@@ -135,7 +144,7 @@ while running:
 
 	for each_planet in planets:
 
-		each_planet.update_position(time_step=5)
+		each_planet.update_position(time_step=10, bounds=bounds)
 
 
 
