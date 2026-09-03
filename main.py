@@ -3,8 +3,10 @@
 #some imports
 import pygame
 import sys
+import math
 
-gravity_cof = 0.15
+
+gravity_cof = 6*10**-11
 
 class Planet:
 
@@ -44,16 +46,40 @@ class Planet:
 
 		self.y += self.v_y * time_step
 
-		self.x = min(max(self.x, bounds[0]), bounds[1])
-
-		self.y = min(max(self.y, bounds[2]), bounds[3])
-
-
+		"""self.x = min(max(self.x, bounds[0]), bounds[1])
+		
+		self.y = min(max(self.y, bounds[2]), bounds[3])"""
 
 
-def solve_component_acc(d1, d2, mass1, mass2):
+
+def solve_component_acc(x1, x2, y1, y2, mass1, mass2):
+
+	dx = x2-x1 #this is so the positive negative is correct
+
+	dy = y2-y1
+
+	d = math.sqrt(dx**2 + dy**2)
+
+	if d == 0:
+
+		return 0
+
+
+
+	acc = min(gravity_cof * mass2 / d**2, 10)
+
+	acc_x =  acc *dx/d
+
+	acc_y = acc * dy/d
+
+	return acc_x, acc_y
+
+
+"""def solve_component_acc(d1, d2, mass1, mass2):
 
 	d = d2-d1 #this is for the correct +- of the thing
+
+
 
 	if d == 0:
 
@@ -61,10 +87,12 @@ def solve_component_acc(d1, d2, mass1, mass2):
 
 	cof = -1 if d < 0 else 1
 
-	acc = min(gravity_cof * mass2 / d**2, 0.01)
+	acc = min(gravity_cof * mass2 / d**2, 10)
+
+	print(acc)
 
 	return acc * cof
-
+"""
 
 
 # 1. Initialize Pygame
@@ -91,12 +119,14 @@ BACKGROUND_COLOR = (30, 30, 40)    # Dark gray
 PLAYER_COLOR = (0, 255, 128)        # Mint green
 p1_color = (255, 0, 0) #red
 p2_color = (0, 255, 0) #green
+p3_color = (0, 0, 255) #blue
 
 
 #from here lets create a systems
 
-planet1 = Planet("planet1", -50, 0, 0, 0.1, 0, 0, 300, 10, p1_color)
-planet2 = Planet("planet2", 50, 50, 0, -0.2, 0, 0, 200, 4, p2_color)
+planet1 = Planet("earth", 0, 0, 0, 0, 0, 0, 6*10**24, 10, p1_color)
+planet2 = Planet("moon", 200*10**6, 0, 0, 1200, 0, 0, 5*10**22, 2, p2_color)
+#planet3 = Planet("planet3", 25, -50, 0, 0, 0, 0, 400, 5, p3_color)
 
 planets = [planet1, planet2]
 
@@ -136,15 +166,23 @@ while running:
 			mass1 = p1.mass
 			mass2 = p2.mass
 
-			planets[solve_planet].a_x = solve_component_acc(x1, x2, mass1, mass2)
+			planets[solve_planet].a_x, planets[solve_planet].a_y = solve_component_acc(x1, x2, y1, y2, mass1, mass2)
 
-			planets[solve_planet].a_y = solve_component_acc(y1, y2, mass1, mass2)
+			
 
 	#from here all the accelerations are updated
 
 	for each_planet in planets:
 
-		each_planet.update_position(time_step=10, bounds=bounds)
+		
+
+		if each_planet.name == "earth":
+			#just because earth is our reference point
+			continue
+
+		for i in range(20):
+
+			each_planet.update_position(time_step=60, bounds=bounds)
 
 
 
@@ -153,7 +191,7 @@ while running:
 
 	# --- Drawing/Rendering ---
 	# Fill the background to wipe away drawings from the last frame
-	screen.fill(BACKGROUND_COLOR)
+	#screen.fill(BACKGROUND_COLOR)
 
 	#from here we want to draw the planets
 
@@ -161,9 +199,9 @@ while running:
 
 		#from here need to figure out how to translate x,y to the pygame screen
 
-		new_x = half_x + each_planet.x
+		new_x = half_x + min(max(int(each_planet.x*10**-6), bounds[0]), bounds[1])
 
-		new_y = half_y - each_planet.y
+		new_y = half_y - min(max(int(each_planet.y*10**-6), bounds[2]), bounds[3])
 
 		pygame.draw.circle(screen, each_planet.color, (new_x, new_y), each_planet.radius, width=0)
 
