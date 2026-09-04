@@ -77,30 +77,13 @@ def solve_component_acc(x1, x2, y1, y2, mass1, mass2):
 	return acc_x, acc_y
 
 
-"""def solve_component_acc(d1, d2, mass1, mass2):
-
-	d = d2-d1 #this is for the correct +- of the thing
 
 
 
-	if d == 0:
-
-		return 0
-
-	cof = -1 if d < 0 else 1
-
-	acc = min(gravity_cof * mass2 / d**2, 10)
-
-	print(acc)
-
-	return acc * cof
-"""
-
-
-# 1. Initialize Pygame
+#Initialize Pygame
 pygame.init()
 
-# 2. Set up the Screen Dimensions
+#Set up the Screen Dimensions
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 800
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -113,7 +96,7 @@ half_y = SCREEN_HEIGHT/2
 #create the bounds for the screen so that planets dont go off screen
 bounds = [-half_x, half_x, -half_y, half_y]
 
-# 3. Create a Clock to manage frame rates (FPS)
+#Create a Clock to manage frame rates (FPS)
 clock = pygame.time.Clock()
 last_time = pygame.time.get_ticks() #this is for measuring real display time
 
@@ -131,13 +114,13 @@ p4_color = (180, 180 , 255)
 planet1 = Planet("earth", 0, 0, 0, 0, 0, 0, 6*10**24, 10, p1_color)
 planet2 = Planet("moon", 200*10**6, 0, 0, 1200, 0, 0, 5*10**22, 3, p2_color)
 planet3 = Planet("new_moon", 0, 300*10**6, -1100, 0, 0, 0, 2*10**22, 3, p3_color)
-planet4 = Planet("new_moon", 0, -250*10**6, 1150, 0, 0, 0, 2*10**22, 3, p4_color)
+planet4 = Planet("new_moon_2", 0, -250*10**6, 1150, 0, 0, 0, 2*10**22, 3, p4_color)
 
 planets = [planet1, planet2, planet3, planet4]
 
 planets_len = range(len(planets))
 
-# 5. Main Game Loop
+#Main Game Loop
 running = True
 while running:
 	# --- Event Handling (Inputs) ---
@@ -237,7 +220,9 @@ while running:
 
 	current_time = pygame.time.get_ticks()
 
-	if current_time - last_time > 1000: #1000ms have passed in real time
+	if current_time - last_time > 50: #1000ms have passed in real time
+
+		last_time = current_time
 
 		for each_planet in planets:
 
@@ -247,6 +232,6 @@ while running:
 
 				each_planet.previous_positions.pop(0)
 
-# 6. Cleanly close everything down
+#Cleanly close everything down
 pygame.quit()
 sys.exit()
