@@ -4,9 +4,13 @@
 import pygame
 import sys
 import math
-
+import os
+from PIL import Image
+import glob
 
 gravity_cof = 6*10**-11
+
+os.makedirs("frames", exist_ok=True)
 
 class Planet:
 
@@ -99,6 +103,7 @@ bounds = [-half_x, half_x, -half_y, half_y]
 #Create a Clock to manage frame rates (FPS)
 clock = pygame.time.Clock()
 last_time = pygame.time.get_ticks() #this is for measuring real display time
+last_time_frame = 0
 
 # Define Colors (RGB format)
 BACKGROUND_COLOR = (30, 30, 40)    # Dark gray
@@ -120,10 +125,13 @@ planets = [planet1, planet2, planet3, planet4]
 
 planets_len = range(len(planets))
 
+t = 0
+
 #Main Game Loop
 running = True
 while running:
 	# --- Event Handling (Inputs) ---
+	t+= 1 #make sure to increment
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			running = False
@@ -220,6 +228,8 @@ while running:
 
 	current_time = pygame.time.get_ticks()
 
+
+
 	if current_time - last_time > 50: #1000ms have passed in real time
 
 		last_time = current_time
@@ -232,6 +242,42 @@ while running:
 
 				each_planet.previous_positions.pop(0)
 
+	#from here we want to check if we want to add this to the frame
+
+	if int((current_time-last_time_frame)/1000 ) > last_time_frame:
+
+		
+
+		filename = f"frames/frame_{last_time_frame:05d}.png"
+
+		last_time_frame += 1 #basically take a frame every second
+
+		pygame.image.save(screen, filename)
+
+		print(f"Saved {filename}")
+
+	if t > 20*60:
+
+		running = False
+
 #Cleanly close everything down
 pygame.quit()
+
+#from here create the video from the frames
+
+files = sorted(glob.glob("frames/*.png"))
+
+images = [Image.open(file) for file in files]
+
+images[0].save(
+    "simulation.gif",
+    save_all=True,
+    append_images=images[1:],
+    duration=250,  # milliseconds per frame
+    loop=0
+)
+
+print("GIF created!")
+
+
 sys.exit()
