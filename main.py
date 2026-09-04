@@ -7,6 +7,7 @@ import math
 import os
 from PIL import Image
 import glob
+import random
 
 gravity_cof = 6*10**-11
 
@@ -175,7 +176,7 @@ bounds = [-half_x, half_x, -half_y, half_y]
 # Define Colors (RGB format)
 BACKGROUND_COLOR = (30, 30, 40)    # Dark gray
 PLAYER_COLOR = (0, 255, 128)        # Mint green
-p1_color = (255, 165, 0) #orange for sun
+sun_color = (255, 165, 0) #orange for sun
 p2_color = (255, 180, 180) #star with a tint
 p3_color = (180, 255, 180) #light blue
 p4_color = (180, 180 , 255) #light green
@@ -183,12 +184,30 @@ p4_color = (180, 180 , 255) #light green
 
 #from here lets create a systems
 
-planet1 = Planet("earth", (0,0,100*10**6),(0,0,0), (0,0,0), 6*10**24, 10, p1_color)
+planet1 = Planet("earth", (0,0,100*10**6),(0,0,0), (0,0,0), 6*10**24, 10, sun_color)
 planet2 = Planet("moon", (200*10**6, 0, 0), (0, 1100, 100), (0,0,0), 5*10**22, 3, p2_color)
 planet3 = Planet("new_moon", (0, 200*10**6, 0), (-1000, 0,0), (0,0,0), 2*10**22, 3, p3_color)
 planet4 = Planet("new_moon_2", (0,-250*10**6, -150*10**6), (1050, 0, 0), (0,0,0), 2*10**22, 3, p4_color)
 
 planets = [planet1, planet2, planet3, planet4]
+
+#from here lets generate some random small planets
+
+for i in range(4):
+
+	temp_planet = Planet(
+		f"mp{i}",
+		(random.randint(100*10**6, 300*10**6)*random.choice([-1, 1]), random.randint(100*10**6, 300*10**6)*random.choice([-1, 1]), random.randint(100*10**6, 300*10**6)*random.choice([-1, 1])), #starting position
+		(random.randint(500, 750)*random.choice([-1, 1]), random.randint(500, 750)*random.choice([-1, 1]),random.randint(500, 750)*random.choice([-1, 1])), #velocity
+		(0,0,0), #acceleration
+		random.randint(10**20, 10**22), #mass
+		2, #radius
+		(random.randint(180, 255), random.randint(180, 255), random.randint(180, 255)) #color
+	)
+
+	planets.append(temp_planet)
+
+
 
 planets_len = range(len(planets))
 
@@ -199,7 +218,7 @@ frame=0
 
 #from here create the simulation loop outside of the pygame thing
 time_step = 60 #60 seconds or 1 minute
-time_steps = 3*24*30 #each time step is approximatley 20 minutes, so *3 is one hour, 24 is day and 30 is  amonth
+time_steps = 12*24*30 #each time step is approximatley 20 minutes, so *3 is one hour, 24 is day and 30 is  amonth
 for t in range(time_steps):
 
 	#from here update the system, generate the plots
@@ -248,7 +267,7 @@ for t in range(time_steps):
 
 
 
-		for i in range(20):
+		for i in range(5):
 
 			each_planet.update_position(time_step=time_step)
 
