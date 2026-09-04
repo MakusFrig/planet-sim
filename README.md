@@ -1,4 +1,4 @@
-Just a recreation of my planet simulation for my IB personal project but with new features and displays.
+Just a recreation of my planet simulation for my IB personal project but with new features and displays (has trails of the moons motion).
 
 Example Frame from 3 Moon simulation:
 
