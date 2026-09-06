@@ -8,6 +8,9 @@ import os
 from PIL import Image
 import glob
 import random
+import time
+
+script_st = time.time()
 
 gravity_cof = 6*10**-11
 
@@ -60,7 +63,7 @@ class Planet:
 
 
 
-def solve_component_acc(x1, x2, y1, y2, z1, z2, mass1, mass2):
+def solve_component_acc(x1, x2, y1, y2, z1, z2, mass1, mass2, t):
 
 	dx = x2-x1 #this is so the positive negative is correct
 
@@ -71,6 +74,12 @@ def solve_component_acc(x1, x2, y1, y2, z1, z2, mass1, mass2):
 	d = math.sqrt(dx**2 + dy**2 + dz**2)
 
 	if d == 0:
+
+		print(mass1, mass2)
+
+		print(x1, x2)
+
+		print(t)
 
 		return 0
 
@@ -184,24 +193,45 @@ p4_color = (180, 180 , 255) #light green
 
 #from here lets create a systems
 
-planet1 = Planet("earth", (0,0,100*10**6),(0,0,0), (0,0,0), 6*10**24, 10, sun_color)
-planet2 = Planet("moon", (200*10**6, 0, 0), (0, 1100, 100), (0,0,0), 5*10**22, 3, p2_color)
-planet3 = Planet("new_moon", (0, 200*10**6, 0), (-1000, 0,0), (0,0,0), 2*10**22, 3, p3_color)
-planet4 = Planet("new_moon_2", (0,-250*10**6, -150*10**6), (1050, 0, 0), (0,0,0), 2*10**22, 3, p4_color)
+planet1 = Planet("earth", (0,0,0),(0,0,0), (0,0,0), 6*10**24, 10, sun_color)
+#planet2 = Planet("moon", (200*10**6, 0, 0), (0, 1100, 100), (0,0,0), 5*10**22, 3, p2_color)
+#planet3 = Planet("new_moon", (0, 200*10**6, 0), (-1000, 0,0), (0,0,0), 2*10**22, 3, p3_color)
+#planet4 = Planet("new_moon_2", (0,-250*10**6, -150*10**6), (1050, 0, 0), (0,0,0), 2*10**22, 3, p4_color)
 
-planets = [planet1, planet2, planet3, planet4]
+planets = [planet1]
 
 #from here lets generate some random small planets
 
-for i in range(4):
+for i in range(20):
+
+	#for now just make them on the xy axis
+
+	theta1 = random.uniform(0, 359)
+	theta2 = random.uniform(0, 359)
+	theta3 = 0#random.uniform(0, 359)
+
+
+
+	distance = (200) * 10**6
+	
+	velocity = 1000#math.sqrt(gravity_cof * 6 * 10**24 / distance)
+
+	
+
 
 	temp_planet = Planet(
 		f"mp{i}",
-		(random.randint(100*10**6, 300*10**6)*random.choice([-1, 1]), random.randint(100*10**6, 300*10**6)*random.choice([-1, 1]), random.randint(100*10**6, 300*10**6)*random.choice([-1, 1])), #starting position
-		(random.randint(500, 750)*random.choice([-1, 1]), random.randint(500, 750)*random.choice([-1, 1]),random.randint(500, 750)*random.choice([-1, 1])), #velocity
+		(distance * math.cos(math.radians(theta2)) * math.cos(math.radians(theta1)), 
+		distance *math.cos(math.radians(theta2)) * math.sin(math.radians(theta1)), 
+		distance * math.sin(math.radians(theta2))), #starting position
+		(
+		velocity * (math.sin(math.radians(theta3))*math.cos(math.radians(theta1+90)) + math.cos(math.radians(theta3))*math.cos(math.radians(theta2+90))*math.cos(math.radians(theta1+180))),
+		velocity * (math.sin(math.radians(theta3))*math.sin(math.radians(theta1+90)) + math.cos(math.radians(theta3))*math.cos(math.radians(theta2+90))*math.sin(math.radians(theta1+180))),
+		velocity * (math.cos(math.radians(theta3))*math.sin(math.radians(theta2+90)))
+		),
 		(0,0,0), #acceleration
-		random.randint(10**20, 10**22), #mass
-		2, #radius
+		0, #mass
+		3, #radius
 		(random.randint(180, 255), random.randint(180, 255), random.randint(180, 255)) #color
 	)
 
@@ -218,8 +248,12 @@ frame=0
 
 #from here create the simulation loop outside of the pygame thing
 time_step = 60 #60 seconds or 1 minute
-time_steps = 12*24*30 #each time step is approximatley 20 minutes, so *3 is one hour, 24 is day and 30 is  amonth
+time_steps = 60*24*30 #each time step is approximatley 20 minutes, so *3 is one hour, 24 is day and 30 is  amonth
 for t in range(time_steps):
+
+	
+
+	#quit()
 
 	#from here update the system, generate the plots
 
@@ -256,7 +290,7 @@ for t in range(time_steps):
 			mass2 = p2.mass
 
 			
-			new_a_x, new_a_y, new_a_z = solve_component_acc(x1, x2, y1, y2, z1, z2, mass1, mass2)
+			new_a_x, new_a_y, new_a_z = solve_component_acc(x1, x2, y1, y2, z1, z2, mass1, mass2, t)
 			planets[solve_planet].a_x += new_a_x
 			planets[solve_planet].a_y += new_a_y
 			planets[solve_planet].a_z += new_a_z
@@ -267,13 +301,13 @@ for t in range(time_steps):
 
 
 
-		for i in range(5):
+		for i in range(1):
 
 			each_planet.update_position(time_step=time_step)
 
 	#now things are updated we need to check if we add to the trail
 
-	if t - last_time >= 6: #basically every two hours of simulation it adds the new position
+	if t - last_time >= 8: #basically every two hours of simulation it adds the new position
 
 		last_time = t #reset the last time
 
@@ -281,11 +315,11 @@ for t in range(time_steps):
 
 			each_planet.previous_positions.append([each_planet.x, each_planet.y, each_planet.z])
 
-			if len(each_planet.previous_positions) > 50: #make sure the trail isnt too long
+			if len(each_planet.previous_positions) > 60: #make sure the trail isnt too long
 
 				each_planet.previous_positions.pop(0)
 
-	if t - last_time_frame >= 36: #basically generate a snapshot every 12 hours
+	if t - last_time_frame >= 120: #basically generate a snapshot every 12 hours
 
 		last_time_frame = t
 
@@ -294,6 +328,7 @@ for t in range(time_steps):
 		#start with the x, y
 
 		screen.fill((0,0,0))
+		pygame.draw.circle(screen, (255,0,0), (half_x, half_y), 200, width=1)
 		draw_axis_watermark(screen, vertical="Y", horizontal="X")
 
 		for each_planet in planets:
@@ -329,6 +364,7 @@ for t in range(time_steps):
 		#now do the same for the xz axis
 
 		screen.fill((0,0,0))
+		pygame.draw.circle(screen, (255,0,0), (half_x, half_y), 200, width=1)
 		draw_axis_watermark(screen, vertical="Z", horizontal="X")
 
 		for each_planet in planets:
@@ -364,6 +400,7 @@ for t in range(time_steps):
 		#now from here do the yz axis
 
 		screen.fill((0,0,0))
+		pygame.draw.circle(screen, (255,0,0), (half_x, half_y), 200, width=1)
 		draw_axis_watermark(screen, vertical="Z", horizontal="Y")
 
 		for each_planet in planets:
@@ -444,5 +481,9 @@ images[0].save(
 
 print("GIF created!")
 
+
+script_et = time.time()
+
+print(f"Program ran in {round(script_et-script_st, 2)} seconds")
 
 sys.exit()
